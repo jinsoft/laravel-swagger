@@ -9,7 +9,7 @@ header("Access-Control-Allow-Headers: X-Requested-With");
 <html>
     <head>
         <meta charset="UTF-8">
-        <title>Swagger UI</title>
+        <title>{{ config('app.name', 'Swagger UI') }}</title>
         <link rel="icon" type="image/png" href="/vendor/swaggervel/images/favicon-32x32.png" sizes="32x32" />
         <link rel="icon" type="image/png" href="/vendor/swaggervel/images/favicon-16x16.png" sizes="16x16" />
         <link href='/vendor/swaggervel/css/typography.css' media='screen' rel='stylesheet' type='text/css'/>
@@ -31,7 +31,8 @@ header("Access-Control-Allow-Headers: X-Requested-With");
         <script src='/vendor/swaggervel/lib/swagger-oauth.js' type='text/javascript'></script>
 
         <!-- Some basic translations -->
-        <!-- <script src='lang/translator.js' type='text/javascript'></script> -->
+        <script src='/vendor/swaggervel/lang/translator.js' type='text/javascript'></script>
+        <script src='/vendor/swaggervel/lang/zh_cn.js' type='text/javascript'></script>
         <!-- <script src='lang/ru.js' type='text/javascript'></script> -->
         <!-- <script src='lang/en.js' type='text/javascript'></script> -->
 
@@ -89,15 +90,16 @@ header("Access-Control-Allow-Headers: X-Requested-With");
                         $('pre code').each(function (i, e) {
                             hljs.highlightBlock(e)
                         });
-
+                        addCsrfToken();
                         addApiKeyAuthorization();
                     },
                     onFailure: function (data) {
                         log("Unable to Load SwaggerUI");
                     },
-                    docExpansion: "none",
+                    docExpansion: "list",
                     apisSorter: "alpha",
-                    showRequestHeaders: false
+                    showRequestHeaders: false,
+                    validatorUrl: null
                 });
 
                 function addApiKeyAuthorization() {
@@ -107,6 +109,21 @@ header("Access-Control-Allow-Headers: X-Requested-With");
                         window.swaggerUi.api.clientAuthorizations.add("api_key", apiKeyAuth);
                         log("added key " + key);
                     }
+                }
+
+                function addCsrfToken() {
+                    var csrfToken = getCookie('XSRF-TOKEN');
+                    var csrfCookieAuth = new SwaggerClient.ApiKeyAuthorization("X-XSRF-TOKEN", csrfToken, "header");
+                    swaggerUi.api.clientAuthorizations.add("csrfToken", csrfCookieAuth);
+                    log("added csrf " + csrfToken);
+                }
+
+                function getCookie(name) {
+                    var arr, reg = new RegExp("(^| )" + name + "=([^;]*)(;|$)");
+                    if (arr = document.cookie.match(reg))
+                        return unescape(arr[2]);
+                    else
+                        return null;
                 }
 
                 $('#input_apiKey').change(addApiKeyAuthorization);
@@ -132,7 +149,7 @@ header("Access-Control-Allow-Headers: X-Requested-With");
     <body class="swagger-section">
         <div id='header'>
             <div class="swagger-ui-wrap">
-                <a id="logo" href="http://swagger.io">swagger</a>
+                <a id="logo" href="/#">{{ config('app.name', 'Swagger') }}</a>
                 <form id='api_selector'>
                     <div class='input'><input placeholder="http://example.com/api" id="input_baseUrl" name="baseUrl" type="text"/></div>
                     <div class='input'><input placeholder="api_key" id="input_apiKey" name="apiKey" type="text"/></div>
